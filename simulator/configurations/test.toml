@@ -1,0 +1,40 @@
+# TOML file for simulator configurations
+# This is an example configuration
+
+[topology] # choose shape either MESH or TORUS
+dimension = [4, 4, 4] # 2D [x, y, 1]
+# shape = "MESH"
+shape = "TORUS"
+
+[routing]
+algorithm = "DOR"
+# algorithm = "ROMM" # not supported yet
+# algorithm = "MAD" # not supported yet
+# algorithm = "VAL" # not supported yet
+
+[microarchitecture] 
+virtual_channel_number = 8 # number of virtual channels in each port
+buffer_size = 8 # the number of flit slots each virtual channel holds
+
+[traffic]
+flit_size = 1 # the number of float numbers a filt contains
+packet_size = 20 # number of flits in a packet
+# packet_size_option = "random uniform"
+packet_size_option = "fixed"
+
+injection_rate = 0.05 # packet per cycle
+
+injection_process = "periodic"
+# injection_process = "bernoulli"
+# injection_process = "markov modulated process" # MMP
+
+alpha = 0.5 # coefficient for MMP
+beta = 0.5 # coefficient for MMP
+
+traffic_pattern = "random uniform"
+# traffic_pattern = "permutation"
+
+[cycles]
+total = 10000
+warmup = 3000
+measurement = 3000
