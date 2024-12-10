@@ -3,7 +3,7 @@
 
 using namespace std::string_view_literals;
 
-static void parseConfiguration(toml::table& table)
+static void parseConfiguration(const toml::table& table)
 {
 	g_x = table["topology"]["dimension"][0].value_or<int>(0);
 	g_y = table["topology"]["dimension"][1].value_or<int>(0);
