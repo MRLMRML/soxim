@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 #if BENCHMARK
 	Benchmark benchmark{};
 #endif
-
+	
 	std::string trafficFolderPath{ "/home/ubuntu/.vs/simulator/simulator/traffic/" };
 	mkdir((trafficFolderPath).c_str(), 0777);
 
