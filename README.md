@@ -92,7 +92,21 @@ make -j4
 ```bash
 ./soxim --help     # Show help
 ./soxim --version  # Show version
+
+# Override configuration
+./soxim config.toml -t TORUS -a MAD -r 0.05
+
+# Dry run (preview configuration)
+./soxim config.toml --dry-run
+
+# Quiet mode (show only results)
+./soxim config.toml -q
+
+# Save configuration
+./soxim config.toml -t TORUS -a MAD -r 0.05 --save-config saved.toml
 ```
+
+See `CLI_OPTIONS.md` for complete CLI documentation.
 
 ### Configuration
 
