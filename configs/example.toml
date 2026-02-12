@@ -3,8 +3,8 @@
 
 [topology] # choose shape either MESH or TORUS
 dimension = [8, 8, 1] # 2D [x, y, 1]
-# shape = "MESH"
-shape = "TORUS"
+shape = "MESH"
+# shape = "TORUS"
 
 [routing]
 algorithm = "DOR"
