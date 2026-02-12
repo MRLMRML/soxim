@@ -367,3 +367,8 @@ traffic/
 results/
 *.csv
 *.png
+!docs/figures/*.png
+!tests/**/*.cpp
+!tests/**/*.h
+!tests/**/*.txt
+!tests/**/*.md
