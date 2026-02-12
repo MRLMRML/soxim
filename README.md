@@ -210,16 +210,16 @@ SOXIM now includes advanced visualization tools:
 ![Algorithm Comparison](docs/figures/compare_results.png)
 *Comparison of simulation runs*
 
-![Parameter Sweep](docs/figures/sweep_results_fixed_fine.png)
-*Saturation curve from parameter sweep (20 injection rates)*
+![Parameter Sweep](docs/figures/sweep_results_mesh_fine.png)
+*Saturation curve from parameter sweep (20 injection rates) - MESH topology*
 
-**Saturation Analysis Results:**
-- **Saturation Point**: 0.060 injection rate
-- **Max Throughput**: 0.550 flit/cycle/node
-- **Latency at Sat**: 791.9 cycles
-- **Efficiency**: 917.0%
+**Saturation Analysis Results (MESH):**
+- **Saturation Point**: 0.085 injection rate
+- **Max Throughput**: 0.382 flit/cycle/node
+- **Latency at Sat**: 1480.6 cycles
+- **Efficiency**: 449.7%
 
-**Note:** After fixing critical bugs, network now operates stably with predictable behavior.
+**Note:** Network stability achieved by switching to MESH topology (DOR is deadlock-free for MESH). See `NETWORK_STABILITY_FIX.md` for details.
 
 See `scripts/README.md` for detailed usage.
 
