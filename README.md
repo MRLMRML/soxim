@@ -210,8 +210,14 @@ SOXIM now includes advanced visualization tools:
 ![Algorithm Comparison](docs/figures/compare_results.png)
 *Comparison of simulation runs*
 
-![Parameter Sweep](docs/figures/sweep_results.png)
-*Saturation curve from parameter sweep*
+![Parameter Sweep](docs/figures/sweep_results_fine.png)
+*Saturation curve from parameter sweep (20 injection rates)*
+
+**Saturation Analysis Results:**
+- **Saturation Point**: 0.085 injection rate
+- **Max Throughput**: 0.544 flit/cycle/node
+- **Latency at Sat**: 2580.6 cycles
+- **Efficiency**: 640.0%
 
 See `scripts/README.md` for detailed usage.
 

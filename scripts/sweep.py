@@ -124,34 +124,73 @@ def run_simulation(soxim_path, config_path, work_dir):
 def plot_saturation_curve(results_df, output_path):
     """Generate saturation curve plot."""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-    
+
+    # Find saturation point (where throughput starts to plateau or decrease)
+    throughputs = results_df['throughput'].values
+    injection_rates = results_df['injection_rate'].values
+
+    saturation_idx = 0
+    max_throughput = 0
+    for i, t in enumerate(throughputs):
+        if t > max_throughput:
+            max_throughput = t
+            saturation_idx = i
+
+    saturation_rate = injection_rates[saturation_idx]
+    saturation_throughput = throughputs[saturation_idx]
+    saturation_latency = results_df['latency'].values[saturation_idx]
+
     # Throughput vs Injection Rate
-    ax1.plot(results_df['injection_rate'], results_df['throughput'], 
-             'bo-', linewidth=2, markersize=8)
-    ax1.plot([0, results_df['injection_rate'].max()], 
-             [0, results_df['injection_rate'].max()], 
+    ax1.plot(injection_rates, throughputs, 'bo-', linewidth=2, markersize=8, label='Measured')
+    ax1.plot([0, injection_rates.max()],
+             [0, injection_rates.max()],
              'k--', alpha=0.5, label='Ideal (throughput = injection rate)')
+
+    # Mark saturation point
+    ax1.axvline(x=saturation_rate, color='g', linestyle='--', alpha=0.7,
+                label=f'Saturation ({saturation_rate:.3f})')
+    ax1.plot(saturation_rate, saturation_throughput, 'g*', markersize=15,
+             label=f'Max Throughput ({saturation_throughput:.3f})')
+
     ax1.set_xlabel('Injection Rate (packets/cycle)', fontsize=12)
     ax1.set_ylabel('Throughput (flits/cycle/node)', fontsize=12)
     ax1.set_title('Saturation Curve', fontsize=14, fontweight='bold')
     ax1.legend()
     ax1.grid(True, alpha=0.3)
-    
+
     # Latency vs Injection Rate
-    ax2.plot(results_df['injection_rate'], results_df['latency'], 
-             'ro-', linewidth=2, markersize=8)
+    ax2.plot(injection_rates, results_df['latency'].values,
+             'ro-', linewidth=2, markersize=8, label='Measured')
+
+    # Mark saturation point on latency plot
+    ax2.axvline(x=saturation_rate, color='g', linestyle='--', alpha=0.7,
+                label=f'Saturation ({saturation_rate:.3f})')
+    ax2.plot(saturation_rate, saturation_latency, 'g*', markersize=15,
+             label=f'Latency at Sat ({saturation_latency:.1f})')
+
     ax2.set_xlabel('Injection Rate (packets/cycle)', fontsize=12)
     ax2.set_ylabel('Average Latency (cycles)', fontsize=12)
     ax2.set_title('Latency vs Injection Rate', fontsize=14, fontweight='bold')
+    ax2.legend()
     ax2.grid(True, alpha=0.3)
-    
+
     plt.tight_layout()
-    
+
     if output_path:
         plt.savefig(output_path, dpi=150, bbox_inches='tight')
         print(f"\n📁 Saturation curve saved to: {output_path}")
     else:
         plt.show()
+
+    # Print saturation analysis
+    print("\n" + "="*60)
+    print("SATURATION ANALYSIS")
+    print("="*60)
+    print(f"Saturation Point:   {saturation_rate:.3f} injection rate")
+    print(f"Max Throughput:     {saturation_throughput:.3f} flit/cycle/node")
+    print(f"Latency at Sat:     {saturation_latency:.1f} cycles")
+    print(f"Efficiency:         {saturation_throughput/saturation_rate*100:.1f}%")
+    print("="*60)
 
 
 def main():
