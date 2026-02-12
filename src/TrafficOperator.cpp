@@ -227,8 +227,8 @@ void TrafficOperator::updateTrafficInformation()
 		std::getline(infoLineInString, sentTime, ',');
 		std::getline(infoLineInString, receivedTime, ',');
 
-		for (int i{}; i < m_network->m_terminalInterfaces.
-			at(-stoi(source) - 1)->m_outputTrafficInfoBuffer.size(); ++i)
+			for (size_t i{}; i < m_network->m_terminalInterfaces.
+				at(-stoi(source) - 1)->m_outputTrafficInfoBuffer.size(); ++i)
 		{
 			if (m_network->m_terminalInterfaces.at(-stoi(source) - 1)
 				->m_outputTrafficInfoBuffer.at(i).m_packetID == stoi(packetID) &&
@@ -242,8 +242,8 @@ void TrafficOperator::updateTrafficInformation()
 			}
 		}
 
-		for (int i{}; i < m_network->m_terminalInterfaces.
-			at(-stoi(destination) - 1)->m_inputTrafficInfoBuffer.size(); ++i)
+			for (size_t i{}; i < m_network->m_terminalInterfaces.
+				at(-stoi(destination) - 1)->m_inputTrafficInfoBuffer.size(); ++i)
 		{
 			if (m_network->m_terminalInterfaces.at(-stoi(destination) - 1)
 				->m_inputTrafficInfoBuffer.at(i).m_packetID == stoi(packetID) &&

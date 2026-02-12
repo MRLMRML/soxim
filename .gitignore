@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# SOXIM specific
+build/
+traffic/
+results/
+*.csv
+*.png

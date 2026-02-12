@@ -77,7 +77,7 @@ void TerminalInterface::injectTraffic()
 
 void TerminalInterface::readPacket()
 {
-	for (int i{}; i < m_outputTrafficInfoBuffer.size(); ++i)
+	for (size_t i{}; i < m_outputTrafficInfoBuffer.size(); ++i)
 	{
 		if (m_outputTrafficInfoBuffer.at(i).m_status == "V")
 		{
@@ -100,12 +100,12 @@ void TerminalInterface::makeFlits(const Packet& packet)
 	m_sourceQueue.push_back({ packet.m_source,
 		getRoute(packet.m_destination) }); // H
 
-	for (int i{}; i < packet.m_data.size(); i += g_flitSize) // B
+	for (size_t i{}; i < packet.m_data.size(); i += static_cast<size_t>(g_flitSize)) // B
 	{
 		std::vector<float> flitData{};
 		for (int j{}; j < g_flitSize; ++j)
 			flitData.push_back(packet.m_data.at(i + j));
-		m_sourceQueue.push_back({ flitData, i });
+		m_sourceQueue.push_back({ flitData, static_cast<int>(i) });
 	}
 
 	m_sourceQueue.push_back({ packet.m_packetID }); // T
@@ -118,6 +118,7 @@ std::deque<int> TerminalInterface::getRoute(const int destination)
 		if (entry.back() == destination)
 			return entry;
 	}
+	return {}; // Return empty deque if route not found
 }
 
 void TerminalInterface::sendFlit()
@@ -242,7 +243,7 @@ void TerminalInterface::makePacket(const Flit& flit)
 void TerminalInterface::writePacket(const Packet& packet)
 {
 	m_inputTrafficInfoBuffer.push_back({ packet.m_packetID,
-	packet.m_source, packet.m_destination, packet.m_data.size(),
+	packet.m_source, packet.m_destination, static_cast<int>(packet.m_data.size()),
 	"R", 0, m_clock.get() });
 
 	m_inputTrafficDataBuffer.push_back(packet.m_data);

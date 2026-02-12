@@ -69,12 +69,12 @@ void Router::initiatePriorities()
 {
 	m_priorityTableVA.clear();
 	m_priorityTableSA.clear();
-	for (int i{}; i < m_ports.size(); ++i)
+			for (size_t i{}; i < m_ports.size(); ++i)
 	{
 		for (int j{}; j < g_virtualChannelNumber; ++j)
 		{
-			m_priorityTableVA.push_back({ i, j });
-			m_priorityTableSA.push_back({ i, j });
+			m_priorityTableVA.push_back({ static_cast<int>(i), j });
+			m_priorityTableSA.push_back({ static_cast<int>(i), j });
 		}
 	}
 }
@@ -239,7 +239,7 @@ void Router::allocateSwitch()
 			.m_enable == true)
 		{
 			// i is output port index
-			for (int i{}; i < m_ports.size(); ++i)
+	for (size_t i{}; i < m_ports.size(); ++i)
 			{
 				// find the output port that is routed
 				// and check if the downstream virtual channel
@@ -260,10 +260,10 @@ void Router::allocateSwitch()
 					// add this connection into crossbar
 					if (checkConflict(entry.m_portIndex, i))
 						m_crossbar.push_back({
-							entry.m_portIndex,
-							entry.m_virtualChannelIndex,
-							i,
-							m_ports.at(entry.m_portIndex)
+									entry.m_portIndex,
+									entry.m_virtualChannelIndex,
+									static_cast<int>(i),
+									m_ports.at(entry.m_portIndex)
 							->m_controlFields
 							.at(entry.m_virtualChannelIndex)
 							.m_allocatedVirtualChannel });
