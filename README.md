@@ -171,6 +171,15 @@ SOXIM now includes advanced visualization tools:
 
 # Compare multiple algorithms
 ./saturation.py results/ --compare --find-saturation
+
+# Analyze traffic patterns
+./analyze.py ../build/src/traffic/TrafficInformation.csv -o docs/figures/analyze_results.png
+
+# Compare simulation runs
+./compare.py run1/traffic/ run2/traffic/ -l "Run1" "Run2" -o docs/figures/compare_results.png
+
+# Run parameter sweeps
+./sweep.py -c configs/example.toml --rates 0.01 0.05 0.1 -o docs/figures/sweep_results.png
 ```
 
 **Visualization Features:**
@@ -181,6 +190,8 @@ SOXIM now includes advanced visualization tools:
 - Saturation curves
 - Latency CDFs
 - Algorithm comparison plots
+- Traffic pattern analysis
+- Parameter sweep visualization
 
 **Example Visualizations:**
 
@@ -192,6 +203,15 @@ SOXIM now includes advanced visualization tools:
 
 ![Saturation Analysis](docs/figures/saturation.png)
 *Throughput vs injection rate analysis*
+
+![Traffic Analysis](docs/figures/analyze_results.png)
+*Traffic pattern analysis with latency distribution*
+
+![Algorithm Comparison](docs/figures/compare_results.png)
+*Comparison of simulation runs*
+
+![Parameter Sweep](docs/figures/sweep_results.png)
+*Saturation curve from parameter sweep*
 
 See `scripts/README.md` for detailed usage.
 

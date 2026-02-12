@@ -34,10 +34,18 @@ def parse_arguments():
 def load_and_analyze(filepath):
     """Load CSV and calculate statistics."""
     df = pd.read_csv(filepath)
-    df['latency'] = df['receivedTime'] - df['sentTime']
-    
+
+    # Convert column names to lowercase for consistency
+    df.columns = df.columns.str.lower().str.replace(',', '')
+
+    # Convert time columns to numeric
+    df['senttime'] = pd.to_numeric(df['senttime'], errors='coerce')
+    df['receivedtime'] = pd.to_numeric(df['receivedtime'], errors='coerce')
+
+    df['latency'] = df['receivedtime'] - df['senttime']
+
     received = df[df['status'] == 'R']
-    
+
     stats = {
         'total': len(df),
         'received': len(received),
@@ -45,7 +53,7 @@ def load_and_analyze(filepath):
         'avg_latency': received['latency'].mean() if len(received) > 0 else 0,
         'latencies': received['latency'].values if len(received) > 0 else np.array([])
     }
-    
+
     return stats
 
 

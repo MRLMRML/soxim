@@ -46,16 +46,20 @@ Examples:
 def load_traffic_data(filepath):
     """Load and parse TrafficInformation.csv."""
     df = pd.read_csv(filepath)
-    
+
     # Convert column names to lowercase for consistency
     df.columns = df.columns.str.lower().str.replace(',', '')
-    
+
     # Convert status to categorical
     df['status'] = df['status'].astype('category')
-    
+
+    # Convert time columns to numeric (handle floating point)
+    df['senttime'] = pd.to_numeric(df['senttime'], errors='coerce')
+    df['receivedtime'] = pd.to_numeric(df['receivedtime'], errors='coerce')
+
     # Calculate latency for received packets
     df['latency'] = df['receivedtime'] - df['senttime']
-    
+
     return df
 
 
