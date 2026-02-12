@@ -99,7 +99,7 @@ This document summarizes all changes made to the SOXIM project as part of the 5 
 **Files Added:**
 - `.github/workflows/ci.yml` - Main CI/CD pipeline (8 stages)
 - `Dockerfile` - Container image definition
-- `.github/README.md` - CI/CD documentation
+- `.github/CI_CD_DOCUMENTATION.md` - CI/CD documentation
 - `CONTRIBUTING.md` - Contribution guidelines
 - `.github/ISSUE_TEMPLATE/bug_report.md` - Bug report template
 - `.github/ISSUE_TEMPLATE/feature_request.md` - Feature request template

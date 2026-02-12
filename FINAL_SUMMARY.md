@@ -185,7 +185,7 @@
 **Files Created:**
 - `.github/workflows/ci.yml` - Main CI/CD pipeline
 - `Dockerfile` - Container image definition
-- `.github/README.md` - CI/CD documentation
+- `.github/CI_CD_DOCUMENTATION.md` - CI/CD documentation
 - `CONTRIBUTING.md` - Contribution guidelines
 - `.github/ISSUE_TEMPLATE/bug_report.md` - Bug report template
 - `.github/ISSUE_TEMPLATE/feature_request.md` - Feature request template

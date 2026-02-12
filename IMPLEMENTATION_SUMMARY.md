@@ -157,7 +157,7 @@ This document summarizes the implementation of the 5 recommended features for th
    - Automated build and test
    - Multi-stage build support
 
-3. **.github/README.md** - CI/CD documentation
+3. **.github/CI_CD_DOCUMENTATION.md** - CI/CD documentation
    - Pipeline overview
    - Stage descriptions
    - Usage instructions

@@ -311,12 +311,12 @@ docker pull soxim/soxim:latest
 
 - `.github/workflows/ci.yml` - Main CI/CD pipeline
 - `Dockerfile` - Container image definition
-- `.github/README.md` - CI/CD documentation
+- `.github/CI_CD_DOCUMENTATION.md` - CI/CD documentation
 - `CONTRIBUTING.md` - Contribution guidelines
 - `.github/ISSUE_TEMPLATE/` - Issue templates
 - `.github/PULL_REQUEST_TEMPLATE.md` - PR template
 
-See `.github/README.md` for detailed CI/CD documentation.
+See `.github/CI_CD_DOCUMENTATION.md` for detailed CI/CD documentation.
 
 ### GitHub Secrets Required
 
