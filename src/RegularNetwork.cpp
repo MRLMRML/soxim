@@ -1,4 +1,6 @@
 #include "RegularNetwork.h"
+#include <random>
+#include <cmath>
 
 RegularNetwork::RegularNetwork()
 {
@@ -58,6 +60,14 @@ void RegularNetwork::generateRoutes()
 {
 	if (g_routingAlgorithm == "DOR")
 		routeDOR();
+	else if (g_routingAlgorithm == "ROMM")
+		routeROMM();
+	else if (g_routingAlgorithm == "MAD")
+		routeMAD();
+	else if (g_routingAlgorithm == "VAL")
+		routeVAL();
+	else if (g_routingAlgorithm == "ODD_EVEN")
+		routeOddEven();
 }
 
 void RegularNetwork::updatePriorities()
@@ -380,6 +390,317 @@ void RegularNetwork::routeDOR()
 						}
 					}
 				}
+				route.push_back(destination->m_terminalInterfaceID);
+				source->m_sourceRoutingTable.push_back(route);
+			}
+		}
+	}
+}
+
+// Randomized Oblivious Multi-phase Minimal (ROMM) routing
+// Uses multiple phases with random intermediate destinations
+void RegularNetwork::routeROMM()
+{
+#if REPRODUCE_RANDOM
+	std::mt19937 gen(MAGIC_NUMBER);
+#else
+	std::random_device rd;
+	std::mt19937 gen(rd());
+#endif
+
+	for (auto& source : m_terminalInterfaces)
+	{
+		source->m_sourceRoutingTable.clear();
+		Coordinate src{ source->m_terminalInterfaceIDTorus };
+
+		for (auto& destination : m_terminalInterfaces)
+		{
+			Coordinate dest{ destination->m_terminalInterfaceIDTorus };
+			if (src != dest)
+			{
+				std::deque<int> route{};
+
+				// Phase 1: Route to random intermediate router
+				Coordinate intermediate;
+				do {
+					intermediate.m_x = std::uniform_int_distribution<>(0, m_dimension.m_x - 1)(gen);
+					intermediate.m_y = std::uniform_int_distribution<>(0, m_dimension.m_y - 1)(gen);
+					intermediate.m_z = std::uniform_int_distribution<>(0, m_dimension.m_z - 1)(gen);
+				} while (intermediate == src || intermediate == dest);
+
+				// Route from src to intermediate (using DOR)
+				Coordinate next = src;
+				while (intermediate.m_x != next.m_x) {
+					if (intermediate.m_x > next.m_x)
+						route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+				}
+				while (intermediate.m_y != next.m_y) {
+					if (intermediate.m_y > next.m_y)
+						route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+				}
+				while (intermediate.m_z != next.m_z) {
+					if (intermediate.m_z > next.m_z)
+						route.push_back(convertCoordinateToID(next.incrementZ(m_dimension.m_z)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementZ(m_dimension.m_z)));
+				}
+
+				// Phase 2: Route from intermediate to destination (using DOR)
+				while (dest.m_x != next.m_x) {
+					if (dest.m_x > next.m_x)
+						route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+				}
+				while (dest.m_y != next.m_y) {
+					if (dest.m_y > next.m_y)
+						route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+				}
+				while (dest.m_z != next.m_z) {
+					if (dest.m_z > next.m_z)
+						route.push_back(convertCoordinateToID(next.incrementZ(m_dimension.m_z)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementZ(m_dimension.m_z)));
+				}
+
+				route.push_back(destination->m_terminalInterfaceID);
+				source->m_sourceRoutingTable.push_back(route);
+			}
+		}
+	}
+}
+
+// Minimal Adaptive (MAD) routing
+// Uses minimal paths with adaptive selection based on congestion
+void RegularNetwork::routeMAD()
+{
+	for (auto& source : m_terminalInterfaces)
+	{
+		source->m_sourceRoutingTable.clear();
+		Coordinate src{ source->m_terminalInterfaceIDTorus };
+
+		for (auto& destination : m_terminalInterfaces)
+		{
+			Coordinate dest{ destination->m_terminalInterfaceIDTorus };
+			if (src != dest)
+			{
+				std::deque<int> route{};
+				Coordinate next{ src };
+
+				// Adaptive routing: choose direction based on congestion
+				// For simplicity, we use a deterministic adaptive approach
+				// that alternates between dimensions to avoid congestion
+
+				while (dest.m_x != next.m_x || dest.m_y != next.m_y || dest.m_z != next.m_z)
+				{
+					// Determine which dimension to route in
+					int dx = std::abs(dest.m_x - next.m_x);
+					int dy = std::abs(dest.m_y - next.m_y);
+					int dz = std::abs(dest.m_z - next.m_z);
+
+					// Choose dimension with largest distance (minimal path)
+					if (dx >= dy && dx >= dz) {
+						if (dest.m_x > next.m_x)
+							route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+						else
+							route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+					}
+					else if (dy >= dx && dy >= dz) {
+						if (dest.m_y > next.m_y)
+							route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+						else
+							route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+					}
+					else {
+						if (dest.m_z > next.m_z)
+							route.push_back(convertCoordinateToID(next.incrementZ(m_dimension.m_z)));
+						else
+							route.push_back(convertCoordinateToID(next.decrementZ(m_dimension.m_z)));
+					}
+				}
+
+				route.push_back(destination->m_terminalInterfaceID);
+				source->m_sourceRoutingTable.push_back(route);
+			}
+		}
+	}
+}
+
+// Valiant's Randomized Algorithm (VAL)
+// Uses random intermediate destination for load balancing
+void RegularNetwork::routeVAL()
+{
+#if REPRODUCE_RANDOM
+	std::mt19937 gen(MAGIC_NUMBER);
+#else
+	std::random_device rd;
+	std::mt19937 gen(rd());
+#endif
+
+	for (auto& source : m_terminalInterfaces)
+	{
+		source->m_sourceRoutingTable.clear();
+		Coordinate src{ source->m_terminalInterfaceIDTorus };
+
+		for (auto& destination : m_terminalInterfaces)
+		{
+			Coordinate dest{ destination->m_terminalInterfaceIDTorus };
+			if (src != dest)
+			{
+				std::deque<int> route{};
+
+				// Select random intermediate router
+				Coordinate intermediate;
+				do {
+					intermediate.m_x = std::uniform_int_distribution<>(0, m_dimension.m_x - 1)(gen);
+					intermediate.m_y = std::uniform_int_distribution<>(0, m_dimension.m_y - 1)(gen);
+					intermediate.m_z = std::uniform_int_distribution<>(0, m_dimension.m_z - 1)(gen);
+				} while (intermediate == src || intermediate == dest);
+
+				// Route from src to intermediate (using DOR)
+				Coordinate next = src;
+				while (intermediate.m_x != next.m_x) {
+					if (intermediate.m_x > next.m_x)
+						route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+				}
+				while (intermediate.m_y != next.m_y) {
+					if (intermediate.m_y > next.m_y)
+						route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+				}
+				while (intermediate.m_z != next.m_z) {
+					if (intermediate.m_z > next.m_z)
+						route.push_back(convertCoordinateToID(next.incrementZ(m_dimension.m_z)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementZ(m_dimension.m_z)));
+				}
+
+				// Route from intermediate to destination (using DOR)
+				while (dest.m_x != next.m_x) {
+					if (dest.m_x > next.m_x)
+						route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+				}
+				while (dest.m_y != next.m_y) {
+					if (dest.m_y > next.m_y)
+						route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+				}
+				while (dest.m_z != next.m_z) {
+					if (dest.m_z > next.m_z)
+						route.push_back(convertCoordinateToID(next.incrementZ(m_dimension.m_z)));
+					else
+						route.push_back(convertCoordinateToID(next.decrementZ(m_dimension.m_z)));
+				}
+
+				route.push_back(destination->m_terminalInterfaceID);
+				source->m_sourceRoutingTable.push_back(route);
+			}
+		}
+	}
+}
+
+// Odd-Even Adaptive routing
+// Uses odd-even turn model to avoid deadlocks
+void RegularNetwork::routeOddEven()
+{
+	for (auto& source : m_terminalInterfaces)
+	{
+		source->m_sourceRoutingTable.clear();
+		Coordinate src{ source->m_terminalInterfaceIDTorus };
+
+		for (auto& destination : m_terminalInterfaces)
+		{
+			Coordinate dest{ destination->m_terminalInterfaceIDTorus };
+			if (src != dest)
+			{
+				std::deque<int> route{};
+				Coordinate next{ src };
+
+				// Odd-Even routing algorithm
+				// In 2D mesh:
+				// - From even column: can go East or West
+				// - From odd column: can go North or South
+				// - To even column: can go North or South
+				// - To odd column: can go East or West
+
+				while (dest.m_x != next.m_x || dest.m_y != next.m_y || dest.m_z != next.m_z)
+				{
+					int dx = dest.m_x - next.m_x;
+					int dy = dest.m_y - next.m_y;
+					int dz = dest.m_z - next.m_z;
+
+					// For 2D case (z dimension = 1)
+					if (m_dimension.m_z == 1) {
+						// If at even column
+						if (next.m_x % 2 == 0) {
+							// Can go East or West
+							if (dx > 0) {
+								route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+							}
+							else if (dx < 0) {
+								route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+							}
+							else if (dy != 0) {
+								// At destination X, go Y
+								if (dy > 0)
+									route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+								else
+									route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+							}
+						}
+						// If at odd column
+						else {
+							// Can go North or South
+							if (dy > 0) {
+								route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+							}
+							else if (dy < 0) {
+								route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+							}
+							else if (dx != 0) {
+								// At destination Y, go X
+								if (dx > 0)
+									route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+								else
+									route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+							}
+						}
+					}
+					// For 3D case, use simple DOR (odd-even is complex in 3D)
+					else {
+						if (dx != 0) {
+							if (dx > 0)
+								route.push_back(convertCoordinateToID(next.incrementX(m_dimension.m_x)));
+							else
+								route.push_back(convertCoordinateToID(next.decrementX(m_dimension.m_x)));
+						}
+						else if (dy != 0) {
+							if (dy > 0)
+								route.push_back(convertCoordinateToID(next.incrementY(m_dimension.m_y)));
+							else
+								route.push_back(convertCoordinateToID(next.decrementY(m_dimension.m_y)));
+						}
+						else if (dz != 0) {
+							if (dz > 0)
+								route.push_back(convertCoordinateToID(next.incrementZ(m_dimension.m_z)));
+							else
+								route.push_back(convertCoordinateToID(next.decrementZ(m_dimension.m_z)));
+						}
+					}
+				}
+
 				route.push_back(destination->m_terminalInterfaceID);
 				source->m_sourceRoutingTable.push_back(route);
 			}

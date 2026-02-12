@@ -65,6 +65,88 @@ Compare results from multiple simulation configurations.
 ./compare.py dor/traffic/ romm/traffic/ mad/traffic/ -l "DOR" "ROMM" "MAD" -o comparison.png
 ```
 
+### 4. visualize.py - Comprehensive Visualization
+
+Enhanced visualization with 9-panel analysis including heatmaps, CDFs, and saturation curves.
+
+```bash
+# Basic visualization
+./visualize.py ../build/src/traffic/ -o docs/figures/visualization_results.png
+
+# Statistics only
+./visualize.py ../build/src/traffic/ --stats-only
+
+# Save processed data
+./visualize.py ../build/src/traffic/ --save-data -o results.png
+```
+
+**Features:**
+- Latency distribution histogram
+- Latency vs time scatter plot
+- Throughput per node bar chart
+- Latency heatmap (source-destination)
+- Network topology visualization
+- Contention analysis
+- Saturation curve
+- Latency CDF
+- Summary statistics table
+- Professional matplotlib/seaborn styling
+
+### 5. topology_viz.py - Network Topology Visualization
+
+Visualize network topology with traffic overlay and routing paths.
+
+```bash
+# 2D Mesh topology
+./topology_viz.py --topology MESH --x 8 --y 8 -o topology.png
+
+# 3D Mesh topology
+./topology_viz.py --topology MESH --x 4 --y 4 --z 2 -o topology_3d.png
+
+# Torus topology with traffic overlay
+./topology_viz.py --topology TORUS --x 8 --y 8 \
+  --input ../build/src/traffic/ --show-routing \
+  -o topology_with_traffic.png
+
+# Highlight specific nodes
+./topology_viz.py --topology MESH --x 8 --y 8 \
+  --highlight-nodes 0 7 56 63 -o highlighted.png
+```
+
+**Features:**
+- 2D/3D Mesh and Torus visualization
+- Traffic throughput overlay
+- Routing path visualization
+- Node highlighting
+- Configurable dimensions
+- Professional styling
+
+### 6. saturation.py - Saturation Curve Analysis
+
+Analyze saturation points and compare routing algorithms.
+
+```bash
+# Single algorithm analysis
+./saturation.py ../build/src/traffic/ -o saturation.png
+
+# Compare multiple algorithms
+./saturation.py results/ --compare -o comparison.png
+
+# Find saturation points
+./saturation.py results/ --find-saturation --compare
+
+# Filter by algorithm or pattern
+./saturation.py results/ --algorithm DOR --traffic-pattern "random uniform"
+```
+
+**Features:**
+- Throughput vs injection rate plots
+- Latency comparison
+- Saturation point detection
+- Algorithm comparison
+- Statistical analysis
+- Multiple result comparison
+
 ## Output Files
 
 All scripts generate:

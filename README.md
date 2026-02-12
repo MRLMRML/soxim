@@ -5,10 +5,18 @@ A cycle-accurate Network-on-Chip (NoC) simulator for multi-core processor interc
 ## Features
 
 - **Topologies**: 2D/3D Mesh and Torus networks
-- **Routing**: Dimension-Order Routing (DOR), with extensible architecture for ROMM, MAD, VAL
+- **Routing Algorithms**:
+  - Dimension-Order Routing (DOR)
+  - Randomized Oblivious Multi-phase Minimal (ROMM)
+  - Minimal Adaptive (MAD)
+  - Valiant's Randomized Algorithm (VAL)
+  - Odd-Even Adaptive routing
 - **Virtual Channels**: Configurable number of virtual channels per port
-- **Traffic Patterns**: Random uniform, permutation, customizable injection processes
+- **Traffic Patterns**: Random uniform, permutation, Periodic, Bernoulli, Markov injection processes
 - **Performance Metrics**: Throughput, latency, saturation analysis
+- **Comprehensive Testing**: 128+ unit tests covering all components
+- **Enhanced Visualization**: Python tools for heatmaps, saturation curves, and topology visualization
+- **CI/CD Pipeline**: Automated testing, code coverage, and Docker support
 
 ## Project Structure
 
@@ -23,8 +31,18 @@ soxim/
 │   ├── analyze.py         # Analyze simulation results
 │   ├── sweep.py           # Parameter sweep & saturation curves
 │   ├── compare.py         # Compare multiple runs
+│   ├── run_tests.sh       # Test runner script
 │   ├── requirements.txt   # Python dependencies
 │   └── README.md          # Scripts documentation
+├── tests/                  # Unit tests
+│   ├── unit/              # Unit tests (Google Test)
+│   │   ├── test_data_structures.cpp
+│   │   ├── test_clock.cpp
+│   │   ├── test_register.cpp
+│   │   ├── test_routing.cpp
+│   │   ├── test_topology.cpp
+│   │   └── CMakeLists.txt
+│   └── README.md          # Tests documentation
 └── src/                    # Source code
     ├── CMakeLists.txt
     ├── main.cpp           # Entry point with CLI
@@ -121,6 +139,46 @@ pip install -r requirements.txt
 ./compare.py run1/traffic/ run2/traffic/ -l "Config1" "Config2"
 ```
 
+### Enhanced Visualization
+
+SOXIM now includes advanced visualization tools:
+
+```bash
+# Comprehensive visualization with heatmaps and CDFs
+./visualize.py ../build/src/traffic/ -o docs/figures/visualization_results.png
+
+# Network topology visualization
+./topology_viz.py --topology TORUS --x 8 --y 8 \
+  --input ../build/src/traffic/ --show-routing \
+  -o docs/figures/topology.png
+
+# Saturation curve analysis
+./saturation.py ../build/src/traffic/ -o docs/figures/saturation.png
+
+# Compare multiple algorithms
+./saturation.py results/ --compare --find-saturation
+```
+
+**Visualization Features:**
+- Latency distribution histograms
+- Latency vs time plots
+- Throughput heatmaps
+- Network topology with throughput overlay
+- Saturation curves
+- Latency CDFs
+- Algorithm comparison plots
+
+**Example Visualizations:**
+
+![Comprehensive Analysis](docs/figures/visualization_results.png)
+*Comprehensive visualization with 9 panels showing latency, throughput, and network metrics*
+
+![Network Topology](docs/figures/topology.png)
+*8x8 Torus topology with traffic overlay and routing paths*
+
+![Saturation Analysis](docs/figures/saturation.png)
+*Throughput vs injection rate analysis*
+
 See `scripts/README.md` for detailed usage.
 
 ## Output
@@ -153,6 +211,119 @@ cd ../../scripts
 # 4. Parameter sweep
 ./sweep.py -c ../configs/example.toml -n 10 -o saturation.png
 ```
+
+## Testing
+
+SOXIM includes a comprehensive unit test suite using Google Test.
+
+### Running Tests
+
+```bash
+# Quick test run
+./scripts/run_tests.sh
+
+# Clean and rebuild tests
+./scripts/run_tests.sh --clean
+
+# Manual build and run
+mkdir build && cd build
+cmake .. -DBUILD_TESTS=ON
+make -j4
+cd tests/unit
+./test_data_structures
+./test_clock
+./test_register
+./test_routing
+./test_topology
+./test_router
+./test_traffic_operator
+./test_routing_algorithms
+```
+
+### Test Coverage (128+ Tests)
+
+- **Data Structures**: 29 tests for Flit, Packet, Credit, Coordinate, etc.
+- **Clock**: 9 tests for cycle counter and timing
+- **Register**: 8 tests for input/output registers
+- **Routing**: 7 tests for DOR and coordinate operations
+- **Topology**: 10 tests for MESH/TORUS creation
+- **Router**: 30 tests for pipeline stages (Receive Flit, Receive Credit, Compute Route, VC Allocation, Switch Allocation, Traverse Switch)
+- **Traffic Operator**: 22 tests for traffic generation (Random Uniform, Permutation, Periodic, Bernoulli, Markov)
+- **Routing Algorithms**: 13 tests for DOR, ROMM, MAD, VAL, Odd-Even
+
+See `tests/README.md` for detailed test documentation.
+
+## CI/CD Pipeline
+
+SOXIM includes a comprehensive CI/CD pipeline using GitHub Actions.
+
+### Pipeline Features
+
+- **Automated Testing**: Runs on every push and pull request
+- **Multi-compiler Support**: GCC and Clang
+- **Code Coverage**: Automatic coverage reporting with Codecov
+- **Code Quality**: Linting, formatting, and static analysis
+- **Docker Support**: Automated Docker image builds
+- **Security Scanning**: Vulnerability scanning with Bandit and Trivy
+- **Release Automation**: Automatic release creation on tags
+
+### Pipeline Stages
+
+1. **Build and Test** - Compile and run unit tests on GCC/Clang
+2. **Python Tests** - Validate Python scripts with flake8 and black
+3. **Documentation** - Generate Doxygen documentation
+4. **Code Quality** - clang-format and cppcheck
+5. **Benchmark** - Performance testing
+6. **Release** - Create GitHub releases on version tags
+7. **Docker** - Build and publish Docker images
+8. **Security Scan** - Vulnerability scanning
+
+### Running CI Locally
+
+```bash
+# Install act (GitHub Actions local runner)
+curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+
+# Run specific job
+act -j build-and-test
+
+# Run all jobs
+act
+```
+
+### Docker Support
+
+```bash
+# Build Docker image
+docker build -t soxim:latest .
+
+# Run simulation in container
+docker run --rm soxim:latest --help
+
+# Run with volume mount
+docker run --rm -v $(pwd)/configs:/app/configs soxim:latest configs/example.toml
+
+# Pull from Docker Hub (when available)
+docker pull soxim/soxim:latest
+```
+
+### CI/CD Configuration Files
+
+- `.github/workflows/ci.yml` - Main CI/CD pipeline
+- `Dockerfile` - Container image definition
+- `.github/README.md` - CI/CD documentation
+- `CONTRIBUTING.md` - Contribution guidelines
+- `.github/ISSUE_TEMPLATE/` - Issue templates
+- `.github/PULL_REQUEST_TEMPLATE.md` - PR template
+
+See `.github/README.md` for detailed CI/CD documentation.
+
+### GitHub Secrets Required
+
+For full CI/CD functionality, configure these secrets:
+- `DOCKER_USERNAME`: Docker Hub username
+- `DOCKER_PASSWORD`: Docker Hub password
+- `CODECOV_TOKEN`: Codecov token (optional)
 
 ## Development
 

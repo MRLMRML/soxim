@@ -38,4 +38,7 @@ private:
 	std::vector<Connection> m_crossbar{};
 	std::vector<PriorityTableEntry> m_priorityTableVA{}; // priority for VA
 	std::vector<PriorityTableEntry> m_priorityTableSA{}; // priority for SA
+
+	// Friend classes for unit testing
+	friend class RouterTest;
 };

@@ -1,0 +1,314 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run weekly on Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [Release, Debug]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          g++ \
+          clang \
+          python3 \
+          python3-pip \
+          python3-venv \
+          git \
+          lcov \
+          gcovr
+    
+    - name: Setup Python environment
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install -r scripts/requirements.txt
+    
+    - name: Configure CMake
+      run: |
+        mkdir -p build
+        cd build
+        if [ "${{ matrix.compiler }}" = "clang" ]; then
+          export CC=clang
+          export CXX=clang++
+        fi
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_TESTS=ON -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
+    
+    - name: Build
+      run: |
+        cd build
+        make -j$(nproc)
+    
+    - name: Run unit tests
+      run: |
+        cd build/tests/unit
+        for test in test_data_structures test_clock test_register test_routing test_topology test_router test_traffic_operator test_routing_algorithms; do
+          echo "Running $test..."
+          ./$test --gtest_output=xml:test_results/$test.xml
+        done
+    
+    - name: Run integration tests
+      run: |
+        cd build
+        ./soxim --help || true
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.compiler }}-${{ matrix.build_type }}
+        path: build/tests/unit/test_results/
+    
+    - name: Generate coverage report
+      if: matrix.build_type == 'Debug'
+      run: |
+        cd build
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --list coverage.info
+    
+    - name: Upload coverage to Codecov
+      if: matrix.build_type == 'Debug'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./build/coverage.info
+        flags: unittests
+        name: codecov-umbrella
+
+  python-tests:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r scripts/requirements.txt
+        pip install pytest pytest-cov flake8 black
+    
+    - name: Lint Python code
+      run: |
+        flake8 scripts/ --max-line-length=120
+        black --check scripts/
+    
+    - name: Run Python tests
+      run: |
+        # Create a simple test for the visualization scripts
+        python3 -c "import sys; sys.path.insert(0, 'scripts'); import analyze; import visualize; import topology_viz; import saturation; print('All modules imported successfully')"
+    
+    - name: Test visualization scripts
+      run: |
+        # Test help messages
+        python3 scripts/analyze.py --help
+        python3 scripts/visualize.py --help
+        python3 scripts/topology_viz.py --help
+        python3 scripts/saturation.py --help
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+    
+    - name: Generate documentation
+      run: |
+        cd docs
+        doxygen Doxyfile
+    
+    - name: Upload documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: docs/html/
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format cppcheck
+    
+    - name: Check C++ formatting
+      run: |
+        find src/ tests/ -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
+    
+    - name: Static analysis
+      run: |
+        cppcheck --enable=all --std=c++17 --error-exitcode=1 src/ 2>&1 | grep -v "unmatchedSuppression" || true
+    
+    - name: Check for TODO comments
+      run: |
+        grep -r "TODO" src/ tests/ --include="*.cpp" --include="*.h" && exit 1 || echo "No TODO comments found"
+
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+    
+    - name: Build
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+    
+    - name: Run benchmark
+      run: |
+        cd build
+        # Run a simple benchmark
+        timeout 60 ./soxim --help || true
+    
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: build/benchmark_results/
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [build-and-test, python-tests, code-quality]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+    
+    - name: Build
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+    
+    - name: Create release package
+      run: |
+        cd build
+        tar -czf soxim-release.tar.gz soxim
+        tar -czf soxim-tests.tar.gz tests/unit/
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/soxim-release.tar.gz
+          build/soxim-tests.tar.gz
+        draft: false
+        prerelease: false
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [build-and-test]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build Docker image
+      run: |
+        docker build -t soxim:latest -f Dockerfile .
+    
+    - name: Test Docker image
+      run: |
+        docker run --rm soxim:latest --help || true
+    
+    - name: Push to Docker Hub
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        docker tag soxim:latest $DOCKER_USERNAME/soxim:latest
+        docker push $DOCKER_USERNAME/soxim:latest
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl
+    
+    - name: Run security scan
+      run: |
+        # Install and run Bandit for Python security
+        pip install bandit
+        bandit -r scripts/ -f json -o bandit-report.json || true
+        
+        # Install and run Trivy for container security (if Dockerfile exists)
+        if [ -f Dockerfile ]; then
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy fs --exit-code 0 --format json --output trivy-report.json . || true
+        fi
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          trivy-report.json

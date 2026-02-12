@@ -5,7 +5,7 @@ class RegularNetwork
 {
 public:
 	RegularNetwork();
-	~RegularNetwork(); // release routers, links, and terminals 
+	~RegularNetwork(); // release routers, links, and terminals
 
 	void runOneCycle();
 	int getRouterNumber();
@@ -25,6 +25,10 @@ private:
 	Coordinate convertIDToCoordinate(const int id);
 	int convertCoordinateToID(const Coordinate& coordinate);
 	void routeDOR();
+	void routeROMM(); // Randomized Oblivious Multi-phase Minimal
+	void routeMAD();  // Minimal Adaptive
+	void routeVAL();  // Valiant's Randomized Algorithm
+	void routeOddEven(); // Odd-Even Adaptive
 
 public:
 	std::vector<TerminalInterface*> m_terminalInterfaces{};
