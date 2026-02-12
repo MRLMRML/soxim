@@ -25,4 +25,4 @@ inline int g_totalCycles{};
 inline int g_warmupCycles{};
 inline int g_measurementCycles{};
 inline int g_drainCycles{};
-inline float g_packetNumber{};
+inline int g_packetNumber{};

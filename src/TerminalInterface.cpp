@@ -4,11 +4,7 @@ TerminalInterface::TerminalInterface(const int terminalInterfaceID)
 	:
 	m_terminalInterfaceID{ terminalInterfaceID }
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());  // to seed mersenne twister
-	std::uniform_int_distribution<> dist(0, 10);
-	m_clock.set(static_cast<float>(dist(gen)));
-	//m_clock.set(0);
+	m_clock.set(0);
 }
 
 Port* TerminalInterface::getPort(const int portID)
@@ -47,8 +43,8 @@ bool TerminalInterface::operator==(
 
 void TerminalInterface::injectTraffic()
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());  // to seed mersenne twister
+	static std::random_device rd;
+	static std::mt19937 gen(rd());  // Static generator for consistency
 	std::bernoulli_distribution distBernoulli(g_injectionRate);
 	std::bernoulli_distribution distMMPOnState(g_alpha / (g_alpha + g_beta));
 

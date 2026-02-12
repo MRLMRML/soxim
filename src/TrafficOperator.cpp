@@ -60,9 +60,9 @@ void TrafficOperator::generateRandom()
 	std::ofstream writeTrafficData(m_trafficFolderPath +
 		"TrafficData.csv", std::ios::app);
 
-	for (int packetID{}; packetID < g_packetNumber; ++packetID)
+	for (int source{ -1 }; source >= -m_network->getRouterNumber(); --source)
 	{
-		for (int source{ -1 }; source >= -m_network->getRouterNumber(); --source)
+		for (int packetID{}; packetID < g_packetNumber; ++packetID)
 		{
 			// write TrafficData.csv
 			int packetSize{ g_packetSize };
@@ -92,11 +92,11 @@ void TrafficOperator::generateRandom()
 				<< "-" << ','
 				<< "-" << ','
 				<< std::endl;
-			
+
 			// write m_outputTrafficInfoBuffer in each terminal interface
 			m_network->m_terminalInterfaces.at(-source - 1)->
 				m_outputTrafficInfoBuffer.push_back({
-					packetID, source, destination, 
+					packetID, source, destination,
 					packetSize, "V", 0, 0});
 		}
 	}
@@ -114,11 +114,11 @@ void TrafficOperator::generatePermutation(const int destination)
 	std::ofstream writeTrafficData(m_trafficFolderPath +
 		"TrafficData.csv", std::ios::app);
 
-	for (int packetID{}; packetID < g_packetNumber; ++packetID)
+	for (int source{ -1 }; source >= -m_network->getRouterNumber(); --source)
 	{
-		for (int source{ -1 }; source >= -m_network->getRouterNumber(); --source)
+		if (source != destination)
 		{
-			if (source != destination)
+			for (int packetID{}; packetID < g_packetNumber; ++packetID)
 			{
 				// write TrafficData.csv
 				int packetSize{ g_packetSize };
