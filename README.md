@@ -159,10 +159,18 @@ SOXIM is ideal for:
 
 ## 📄 Documentation
 
-- [CLI Options](CLI_OPTIONS.md) - Complete command-line interface documentation
-- [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Technical architecture details
+### User Documentation
+- [User Guide](docs/USER_GUIDE.md) - Complete usage instructions and examples
+- [CLI Options](docs/CLI_OPTIONS.md) - Command-line interface reference
+
+### Technical Documentation
+- [Technical Documentation](docs/TECHNICAL_DOCUMENTATION.md) - Architecture and implementation details
+- [Development History](docs/DEVELOPMENT_HISTORY.md) - Project evolution and milestones
+- [NoC Simulator Comparison](NOC_SIMULATOR_COMPARISON.md) - Comparison with other NoC simulators
+
+### Testing & Development
 - [Testing Documentation](tests/README.md) - Test suite organization and usage
-- [Bug Fix Summary](BUG_FIX_SUMMARY.md) - Critical issues resolved
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to SOXIM
 
 ## 🤝 Contributing
 
