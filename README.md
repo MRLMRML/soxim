@@ -65,15 +65,6 @@ pip install -r requirements.txt
 ./compare.py run1/traffic/ run2/traffic/ -l "DOR" "ROMM"
 ```
 
-## 📊 Performance Highlights
-
-**Stable Network Operation:**
-- **Saturation Point**: 0.085 injection rate (MESH topology)
-- **Max Throughput**: 0.382 flit/cycle/node
-- **Latency at Saturation**: 1480.6 cycles
-- **Network Efficiency**: 449.7%
-
-**Verified Stability:** No deadlocks or anomalies in extensive testing across multiple routing algorithms and traffic patterns.
 
 ## 🏗️ Architecture
 
@@ -156,23 +147,6 @@ docker run --rm soxim:latest configs/example.toml
 docker run --rm -v $(pwd)/results:/app/traffic soxim:latest configs/example.toml
 ```
 
-## 📈 Analysis Examples
-
-### Saturation Analysis
-![Saturation Curve](docs/figures/sweep_results_mesh.png)
-*Throughput vs injection rate analysis showing stable saturation behavior in MESH topology*
-
-### Network Topology
-![Network Topology](docs/figures/topology.png)
-*8x8 Torus topology with traffic overlay and routing paths*
-
-### Performance Comparison
-![Algorithm Comparison](docs/figures/compare_results.png)
-*Comparison of routing algorithms across different traffic patterns*
-
-### Comprehensive Analysis
-![Comprehensive Results](docs/figures/sweep_results_comprehensive.png)
-*Detailed performance analysis with multiple metrics and configurations*
 
 ## 🔬 Research Applications
 
