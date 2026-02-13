@@ -159,8 +159,8 @@ docker run --rm -v $(pwd)/results:/app/traffic soxim:latest configs/example.toml
 ## 📈 Analysis Examples
 
 ### Saturation Analysis
-![Saturation Curve](docs/figures/saturation.png)
-*Throughput vs injection rate analysis showing stable saturation behavior*
+![Saturation Curve](docs/figures/sweep_results_mesh.png)
+*Throughput vs injection rate analysis showing stable saturation behavior in MESH topology*
 
 ### Network Topology
 ![Network Topology](docs/figures/topology.png)
@@ -169,6 +169,10 @@ docker run --rm -v $(pwd)/results:/app/traffic soxim:latest configs/example.toml
 ### Performance Comparison
 ![Algorithm Comparison](docs/figures/compare_results.png)
 *Comparison of routing algorithms across different traffic patterns*
+
+### Comprehensive Analysis
+![Comprehensive Results](docs/figures/sweep_results_comprehensive.png)
+*Detailed performance analysis with multiple metrics and configurations*
 
 ## 🔬 Research Applications
 
